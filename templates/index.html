@@ -1,51 +1,36 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FastAPI + WebSocket Example</title>
+    <title>FastAPI + WebSocket Chat</title>
 </head>
 <body>
-    <h1>FastAPI + WebSocket Example</h1>
-    <input type="text" id="inputText" placeholder="Text...">
-    <button id="submitButton">Submit</button>
-    <div id="container"></div>
+<h1>FastAPI + WebSocket Chat</h1>
+<form action="" onsubmit="sendMessage(event)" id="form">
+    <input type="text" id="messageText" autocomplete="off" placeholder="Text...">
+    <button>Submit</button>
+</form>
+<ul id='messages'>
+</ul>
+<script>
+    var clientID = Date.now();
+    var ws = new WebSocket(`ws://127.0.0.1:8000/ws/${clientID}`);
 
-    <script>
-        // Создаем WebSocket-соединение с сервером
-        const socket = new WebSocket('ws://127.0.0.1:8000/ws');
+    function processMessage(event) {
+        var messages = document.getElementById('messages')
+        var message = document.createElement('li')
+        var content = document.createTextNode(event.data)
+        message.appendChild(content);
+        messages.appendChild(message);
+    }
 
-        // Функция отображения сообщений на странице
-        function showMessage(message) {
-            const messageContainer = document.getElementById('container');
-            const messageElement = document.createElement('div');
-            messageElement.textContent = message;
-            messageContainer.appendChild(messageElement);
-        }
+    ws.onmessage = processMessage;
 
-        // Обработчик события для установления соединения
-        socket.addEventListener('open', (event) => {
-            showMessage('Connected to server.');
-        });
-
-        // Обработчик события для получения сообщений от сервера
-        socket.onmessage = (event) => {
-            showMessage("You sent : " + event.data)
-        }
-
-        // Обработчик событий при закрытии соединения
-        socket.addEventListener('close', (event) => {
-            showMessage('Connection closed.');
-        });
-
-        const inputText = document.getElementById("inputText");
-        const submitButton = document.getElementById("submitButton");
-
-        submitButton.addEventListener("click", function() {
-            const inputValue = inputText.value;
-            socket.send(inputValue)
-        });
-
-    </script>
+    function sendMessage(event) {
+        var input = document.getElementById("messageText")
+        ws.send(input.value);
+        input.value = ''
+        event.preventDefault()
+    }
+</script>
 </body>
 </html>
